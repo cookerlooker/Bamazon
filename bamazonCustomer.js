@@ -1,55 +1,159 @@
+
+
 //Obtain appropriate NPM packages
+//The inquirer module will be required to be able to ask questions.
 
 var inquirer = require('inquirer');
+
+//mySQL module will be required to be able to update the db of products.
+
 var mysql = require('mysql');
 
+//This module for the table method will be reqired so that the products from the db are displayed in table format
+require("console.table");
+ 
 // Create the connection to database
 var connection = mysql.createConnection({
-	host: 'localhost',
-	port: 8889,
-	user: 'root',
-	password: 'root',
-	database: 'bamazonDB'
+  host: 'localhost',
+  port: 8889,
+  user: 'root',
+  password: 'root',
+  database: 'bamazonDB'
 });
 
 // Establish connection// connect to the mysql server and sql database
 
-
 connection.connect(function(err){
     if (err) throw err;
-    console.log('connected as id: ' + connection.threadId)
+    //console.log('connected as id: ' + connection.threadId)
+    //run the showProducts function after connection is made to prompt the user
     showProducts();
 });
 
-// function which prompts the user for what action they should take
+//Function to list all Products
 
 function showProducts(){
     //prints the items for sale and their details
-    connection.query('SELECT * FROM Products', function(err, res){
+    connection.query('SELECT * FROM products', function(err, res){
       if(err) throw err;
-    
-      console.log('_.~"~._.~"~._.~Welcome to BAMazon~._.~"~._.~"~._')
-      console.log('---------------------Please Place Your Order-------------------------')
-    
-      for(var i = 0; i<res.length;i++){
-        console.log("ID: " + res[i].item_id + " | " + "Designer: " + res[i].designer_name + " | " + "Product: " + res[i].product_name + " | "  + "Department: " + res[i].department_name + " | " + "Price: " + res[i].price + " | " + "Quantity Available: " + res[i].stock_quantity);
-        console.log('-------------------------------------------------------------------------------')
-      }
-    })
-}
+      console.log(" ");
+      console.log(' _.~"~._.~"~._.~WELCOME TO THE BAMazon ONLINE STORE_.~"~._.~"~._.~');
+      console.log("                 Below is our current inventory.");
+      console.log("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+      console.table(res);
+      console.log("* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *");
+      console.log(" ");
+    //run the function for customer product selection, with all the products from the db.
+    customerProdSelect(res);
+    });
+  }
 
-console.log(' ');
-inquirer.prompt([
-  {
-    type: "input",
-    name: "id",
-    message: "What is the ID of the product you would like to purchase?",
-    validate: function(value){
-      if(isNaN(value) == false && parseInt(value) <= res.length && parseInt(value) > 0){
-        return true;
-      } else{
-        return false;
+// Function for customer product selection
+function customerProdSelect(inventory) {
+  inquirer
+  .prompt([
+    {
+      type: "input",
+      name: "choice",
+      message: "Enter the Item ID of the product you would like to purchase.",
+      validate: function(val) {
+        return !isNaN(val);
       }
     }
-  },
-  {
+  ])
+ .then(function(val) {
+   var choiceId = parseInt(val.choice);
+   var product = checkInventory(choiceId, inventory);
+   if (product) {
+     //run the function for choice quantity after the product is selected.
+     customerQuantSelect(product);
+ }
+ else {
+   // if the product id does not match the DB notify user to make another selection.
+   console.log(" ");
+   console.log(" ");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");      console.log("-----------------------------------------------------------------");
+   console.log("That item is not in the Inventory, please make another selection.");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");      console.log("-----------------------------------------------------------------");
+   console.log(" ");
+   console.log(" ");
+   showProducts(); 
+     }
+   }); 
+ }
+
+// Function for customer quantity selection
+function customerQuantSelect(product) {
+  inquirer
+  .prompt([
+    {
+      type: "input",
+      name: "quantity",
+      message: "How many would you like to purchase?",
+      validate: function(val) {
+        return val > 0;
+      }
+    }
+  ])
+  .then(function(val) {
+    var quantity = parseInt(val.quantity);
+  
+    // if the quantity does not match the amount available notify the user to make another selection.
+    if (quantity > product.stock_quantity) {
+      console.log(" ");
+      console.log(" ");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
+      console.log("No stock available for this item, please make another selection.");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
+      console.log(" ");
+      console.log(" ");
+      showProducts();
+
+    }
+    else {
+      //run the function to make the purchase.
+      makePurchase(product, quantity); 
+    }
+  });
+}
+
+// Function to finalize the purchase of the user selection
+function makePurchase(product, quantity) {
+  connection.query(
+    "UPDATE products SET stock_quantity = stock_quantity - ? WHERE item_id = ?",
+    [quantity, product.item_id],
+    function(err, res) {
+      console.log(" ");
+      console.log(" ");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - ");
+      console.log("Thank you for your purchase of " + quantity + " " + product.product_name + "'s!");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - -- - ");
+      console.log(" ");
+      console.log(" ");
+        process.exit();
+    }
+  );
+}
+
+// Function that calculates the total cost of customr purchase.
+function purchaseCost(price, quantity) {
+  connection.query(
+    "CALCULATE total"
+    
+  )
+}
+
+
+// Function to check the inventory
+function checkInventory(choiceId, inventory) {
+  for (var i = 0; i < inventory.length; i++) {
+    if (inventory[i].item_id === choiceId) {
+      return inventory[i];
+    }
+  }
+  return null;
+}
+ 
+
+
+
