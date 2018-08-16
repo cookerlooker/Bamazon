@@ -28,9 +28,5 @@ INSERT INTO products(designer_name, product_name, department_name, price, stock_
 INSERT INTO products(designer_name, product_name, department_name, price, stock_quantity) VALUES("Tom Ford", "Vert Boheme", "Perfume", "235", "90");
 INSERT INTO products(designer_name, product_name, department_name, price, stock_quantity) VALUES("Robert Piguet", "Fracas", "Perfume", "89.99", "36");
 
--- Create a Table for Departments
 
-CREATE TABLE departments (
-    
-)
 

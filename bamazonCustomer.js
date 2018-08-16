@@ -1,5 +1,4 @@
 
-
 //Obtain appropriate NPM packages
 //The inquirer module will be required to be able to ask questions.
 
@@ -9,7 +8,7 @@ var inquirer = require('inquirer');
 
 var mysql = require('mysql');
 
-//This module for the table method will be reqired so that the products from the db are displayed in table format
+//This module for the table method will be required so that the products from the db are displayed in table format
 require("console.table");
  
 // Create the connection to database
@@ -64,6 +63,7 @@ function customerProdSelect(inventory) {
  .then(function(val) {
    var choiceId = parseInt(val.choice);
    var product = checkInventory(choiceId, inventory);
+   //console.log(product);
    if (product) {
      //run the function for choice quantity after the product is selected.
      customerQuantSelect(product);
@@ -103,7 +103,7 @@ function customerQuantSelect(product) {
       console.log(" ");
       console.log(" ");
       console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
-      console.log("No stock available for this item, please make another selection.");
+      console.log("Not enough stock available for this item, please adjust your quantity or make another selection.");
       console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - ");
       console.log(" ");
       console.log(" ");
@@ -130,12 +130,15 @@ function makePurchase(product, quantity) {
       console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - -- - ");
       console.log(" ");
       console.log(" ");
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - -- - ");
+      console.log("Your total today is $" + product.price * quantity);
+      console.log("- - - - - - - - - - - - - - - - - - - - - - - - - - - - -- - ");
         process.exit();
     }
   );
 }
 
-// Function that calculates the total cost of customr purchase.
+// Function that calculates the total cost of customer purchase.
 function purchaseCost(price, quantity) {
   connection.query(
     "CALCULATE total"
@@ -154,6 +157,7 @@ function checkInventory(choiceId, inventory) {
   return null;
 }
  
+
 
 
 
